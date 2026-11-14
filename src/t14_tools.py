@@ -56,6 +56,9 @@ def build_class_map(label_map: dict[int, str], taxonomy: dict[int, str], alias: 
             model_names = {int(c): n for c, n in label_map.items()}
             raise ValueError(f"model classes {[f'{c}={model_names[c]}' for c in src]} map to the same taxonomy class {target!r}; "
                              "a wrong alias still exports valid rows, so merging classes is refused")
+    missing = sorted(names - set(out.values()))
+    if missing:
+        raise ValueError(f"project taxonomy classes {missing} are missing from model label_map mapping")
     return out
 
 
