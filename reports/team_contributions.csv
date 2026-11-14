@@ -1,6 +1,7 @@
 member,git_author_name,git_email,role,modules_files,commit_shas,evidence_note,presenter
-Member 1,,,Lead / Integrator,src/main.py; configs/,,,
-Member 2,,,Data & fixtures,fixtures/; tools/,,,
-Member 3,,,Core algorithm,src/pipeline.py,,,
-Member 4,,,QA / metric,tests/; reports/metrics_*.json,,,
-Member 5,,,Human review + report,reports/group_report.md; demo/,,,
+Trần Thành Hùng (2A202603247),,,Metric contract + Baseline + Tổng hợp Eval (#10),reports/metric_contract.md; out/baseline/predictions.csv; reports/group_report.md,,Chờ commit thành viên,
+Hoàng Quốc Chung (2A202604039),,,Failure Analysis + License AGPL-3.0 (#9),reports/group_report.md; reports/figures/,,Chờ commit thành viên,
+Nguyễn Xuân Việt (2A202604045),,,Code + Test + Export + Eval (#8),src/t14_tools.py; tests/test_t14.py; out/poc/predictions.csv; reports/metrics_*.json,,Chờ commit thành viên,
+Trần Nguyễn Phi Long (2A202604058),,,Human review 30 ảnh/box trên web (#7),out/poc/review_queue.csv; reports/review_queue.csv,,Chờ commit thành viên,
+Phạm Phú Nguyễn Hưng (2A202604062),Phạm Phú Nguyễn Hưng,ppnh10092002@gmail.com,Web review + Tích hợp + Hồ sơ nhóm (#11),tools/t14_lowest_sheet.py; out/site/index.html; web/; submission/README.md; reports/team_contributions.csv; docs/; rules.md,fork/main (squashed),Đã hoàn thiện web review + tích hợp T14 + cập nhật hồ sơ nhóm; pytest (13/13 pass) & preflight (0 FAIL),
+Bùi Văn Thịnh (2A202604040),,,Decision Log + Hoàn thiện báo cáo (#12),reports/decision_log.csv; reports/group_report.md,,Chờ commit thành viên,
