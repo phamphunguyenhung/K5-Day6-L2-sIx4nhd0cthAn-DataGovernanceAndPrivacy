@@ -1,0 +1,44 @@
+# T14 Lane B v2 (segmentation draft, local only). Run:
+#   set CVAT_TOOLS_SRC=<learning>/cvat/src
+#   python -m tools.t14seg.runner --config configs/t14_seg_v2.yaml
+# Rule: gap = 0 at opacity 100%; blurry things are dropped and the background beneath fills the pixels.
+# Thresholds below are HYPOTHESES (no gold yet) - tune on dev only, never on the eval split.
+runner:
+  seed: 42
+  split: dev
+  limit: 0
+  workers: 1
+  threads: 2
+  out: out/seg_v2/run
+  cache_dir: out/seg_v2/cache
+  cache: true
+  resume: true
+  semantic:
+    model: b2
+    hook: null                       # legacy SegFormer policy (semantic.py presets not validated on 50 images)
+  instances:
+    model: yolo26s-seg
+    imgsz: 1280
+    conf: 0.25
+    hook: tools.t14seg.instances:detect_instances
+    cfg_class: tools.t14seg.instances:InstCfg
+    params:
+      model: yolo26s-seg
+      imgsz: 1280
+      conf: 0.25
+      keep_conf: 0.35                # drop blurry: low-confidence instances
+      keep_area: 100                 # drop blurry: tiny instances (px)
+      keep_solid: 0.8                # drop blurry: torn masks
+  postprocess:
+    mode: closure                    # shared-boundary simplification, gap-free
+    eps: 0.8
+    max_points: 1500
+    residual_mode: hybrid            # semantic-only things: keep big/solid ones, drop the rest to background
+    residual_min_area: 150
+  hooks:
+    closure: tools.t14seg.v2_hooks:prepare
+    refine: null                     # SAM off: not shown to beat YOLO, ~7s/instance on CPU
+    layering: null
+    review_rank: null
+    cvat_export: null
+    evaluate: null

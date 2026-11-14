@@ -16,3 +16,12 @@
 - **Output (local, gitignore):** `out/seg_local/cvat_import/{coco_1.0.zip, cvat_images_1.1.zip, labels.json, images/, export_report.*}`. Mọi shape `ai_draft_unreviewed`, `source="auto"`.
 - **Giới hạn:** (1) chưa import thử vào CVAT; (2) khít mép ≠ nhãn đúng: vùng thing chỉ từ SegFormer (không có instance) tạo mảng thô, xe dày bị gộp mảng, ảnh đêm bỏ sót người/xe nhỏ; (3) chưa có gold để đo IoU/F1, nên chưa có số chất lượng; (4) YOLO @640 chỉ thấy 14/32 xe ở drive_030 nên đã đổi sang 1280.
 - **CVAT:** không có thao tác ghi (cvat_upload_done=false).
+
+## 2026-11-14 (khuya) — Lane B v2: tích hợp 10 module tối ưu, gap = 0
+- **Lệnh:** `CVAT_TOOLS_SRC=<learning>/cvat/src python -m tools.t14seg.runner --config configs/t14_seg_v2.yaml` rồi `export_cvat('out/seg_v2/run','out/seg_v2/cvat_import', eps=0.8, masks=True)`.
+- **Kết quả (run_id cee60c67, 50 ảnh dev):** 452s (46 chạy mới + 4 resume), 9.0s/ảnh, RAM đỉnh 5.7 GB, 0 lỗi, 0 sự kiện hook_unavailable/hook_failed trong audit log. 1090 instance YOLO26s-seg@1280 sau lọc mờ, 5766 polygon.
+- **Gap sau khi vẽ polygon (opacity 100%): tối đa 0.0% trên cả 50 ảnh**, `gap_zero_pass=true`, 0 vi phạm (trước: 0.157% trung bình, 0.318% tối đa). Độ lệch polygon-vẽ-lại so với nhãn gốc: trung bình 1.12%, tối đa 4.75% (chỉ số proxy).
+- **Luật hiện hành:** không hở nào; vùng mờ bị bỏ và lấp bằng nền bên dưới. Ngưỡng mờ (keep_conf 0.35, keep_area 100, keep_solid 0.8) là GIẢ THUYẾT, chưa tune vì chưa có gold.
+- **Chưa đo / chặn:** (1) chưa có gold nên chưa có mIoU/F1; (2) chưa import thử vào CVAT (`cvat_import_verified=false`); (3) SAM refine tắt (chậm ~7s/instance, chưa chứng minh tốt hơn YOLO); (4) semantic policy của agent 2 chưa kiểm chứng, đang dùng SegFormer cũ; (5) layering/review_rank chưa nối vào pipeline; (6) song song nhiều worker chưa kết luận.
+- **Sự cố đã xử lý:** 2 tiến trình bench của agent treo (7.4 GB RAM) đã dừng; lần chạy 50 ảnh đầu bị ngắt ở ảnh thứ 2 (nghi thiếu RAM), chạy lại thành công; `drive_057` thuộc split eval, đã loại khỏi mọi quyết định tune.
+- **CVAT:** không có thao tác ghi (cvat_upload_done=false).

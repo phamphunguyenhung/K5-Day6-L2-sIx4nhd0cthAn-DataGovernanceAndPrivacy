@@ -10,4 +10,5 @@
 | D6 | Thứ tự: select → detect → adapter → guard → rank → review file → export → QA, toàn bộ dry-run. | Số ảnh kiểm bằng filesystem: 60 jpg (50 dev / 10 eval). |
 
 ## Ghi chú nhóm (ngoài T14)
-- **Bài segmentation (Day03):** khi kéo opacity lên hết, mask phải khít mép đối tượng. Chỉ đối tượng KHÔNG có class mới được để hở. T14 là bbox, không áp dụng yêu cầu pixel-perfect này.
+- **Bài segmentation (Day03):** khi kéo opacity lên hết, mask phải khít mép đối tượng. ~~Chỉ đối tượng KHÔNG có class mới được để hở.~~ T14 là bbox, không áp dụng yêu cầu pixel-perfect này.
+- **CẬP NHẬT (luật hiện hành cho segmentation draft):** KHÔNG HỞ NÀO (gap = 0 khi vẽ lại ở opacity 100%). Vùng/đối tượng nào mờ (conf thấp, biên không rõ) thì BỎ, phần bị bỏ được lấp bằng nền bên dưới, không để trống. Đánh đổi: bỏ nhiều thì recall giảm, nên luôn báo cả số bị bỏ.
