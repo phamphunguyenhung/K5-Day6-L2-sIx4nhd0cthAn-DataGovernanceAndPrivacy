@@ -38,6 +38,35 @@ Kết quả đúng (Hưng đã chạy thử trên máy mình):
 
 Mở `out/poc/contact_sheet.html` bằng trình duyệt để xem hàng đợi review.
 
+### 2b. Setup cho Lane B (ảnh thật, segmentation draft) — chỉ Tech Lead và ai chạy pipeline ảnh thật
+
+Phần 2 chỉ cần `requirements.txt` của repo. Lane B cần thêm công cụ và dữ liệu **không nằm trong repo**:
+
+| Cần | Chi tiết | Kiểm tra |
+|---|---|---|
+| Python | 3.11 trở lên (tool CVAT yêu cầu `>=3.11`). Hưng chạy trên 3.14.6. | `python --version` |
+| Thư viện thêm | `opencv-python`, `onnxruntime`, `ultralytics` (kéo theo `torch`), `shapely`, `psutil`, `pycocotools` (tùy chọn, để validator đọc lại COCO) | `python -c "import cv2, onnxruntime, ultralytics, shapely, psutil"` |
+| Tool CVAT (chỉ đọc, không sửa) | thư mục `cvat/src` trong workspace `learning` | đặt biến `CVAT_TOOLS_SRC` |
+| Weights | `tools/cvat-seg-copilot/models/segformer_b2_cityscapes.onnx` (~110 MB) và `tools/cvat-seg-copilot/yolo26s-seg.pt` (~23 MB) trong workspace `learning` | `ls` hai file trên |
+| Ảnh thật | `data/real/day02_traffic/{images/, images.csv, manifest.csv}` (60 ảnh, 50 dev + 10 eval) | `Import-Csv data\real\day02_traffic\images.csv \| group split` |
+
+Weights và ảnh thật bị `.gitignore` (`*.pt`, `*.onnx`, `data/real/`), nên **không** có sau `git pull`; xin Hưng hoặc lấy từ workspace.
+Ảnh thật chỉ ở máy local, không commit, không đăng nhóm.
+
+```powershell
+python -m pip install opencv-python onnxruntime ultralytics shapely psutil pycocotools
+$env:CVAT_TOOLS_SRC = "<đường dẫn tới learning>/cvat/src"
+python -m tools.t14seg.runner --config configs/t14_seg_v2.yaml --limit 2      # thử 2 ảnh trước
+python -m tools.t14seg.runner --config configs/t14_seg_v2.yaml                # 50 ảnh dev (~8 phút, RAM đỉnh ~5.7 GB)
+```
+
+- Lần đầu mất thêm thời gian nạp model. Chạy lại cùng ảnh và cấu hình thì dùng cache (`out/seg_v2/cache`), rất nhanh.
+- Cần khoảng 6 GB RAM trống. Đừng chạy song song nhiều tiến trình nặng: một lần chạy 50 ảnh đã bị ngắt giữa chừng khi máy đang
+  bận (nghi thiếu RAM).
+- Kết quả ở `out/seg_v2/` (gitignore). File để import CVAT nằm ở `out/seg_v2/cvat_import/` sau khi chạy `export_cvat`
+  (lệnh đầy đủ trong `docs/benchmark/README.md`, mục Tái lập). **Không tự upload lên server CVAT** khi Hưng chưa cấp task.
+- Bảng số đo và các việc chưa đo: `docs/benchmark/README.md`.
+
 ## 3. Phân công
 
 Tên lấy từ `reports/team_contributions.csv`. Việc ghép tên và vai trò A–E là Hưng đề xuất, ai muốn đổi thì nhắn Hưng.
