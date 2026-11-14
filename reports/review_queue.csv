@@ -1,0 +1,31 @@
+rank,item_id,score,reason,suggested_action,slice,evidence_path,reviewer,reviewer_decision,override_value,review_note,reviewed_at
+1,aa_02#3,0.783,mid_conf;small,keep (check),sign,images/aa_02.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+2,aa_05#3,0.779,mid_conf;small,keep (check),motorbike,images/aa_05.jpg,long,edit,"motorbike,183.7,83.2,9.1,15.9","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+3,aa_49#4,0.777,mid_conf;small,keep (check),motorbike,images/aa_49.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+4,aa_18#4,0.757,mid_conf;small,keep (check),sign,images/aa_18.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+5,aa_26#1,0.753,mid_conf;small,keep (check),pedestrian,images/aa_26.jpg,long,edit,"pedestrian,204.2,76,8.8,21.7","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+6,aa_08#5,0.719,mid_conf;small,keep (check),sign,images/aa_08.jpg,long,edit,"sign,289.7,45.6,13.3,13","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+7,aa_31#3,0.704,mid_conf;small,keep (check),sign,images/aa_31.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+8,aa_16#2,0.69,small,keep (check),pedestrian,images/aa_16.jpg,long,edit,"pedestrian,117.3,70.4,7.1,17.4","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+9,aa_38#1,0.682,mid_conf;small,keep (check),pedestrian,images/aa_38.jpg,long,reject,,Không thấy đối tượng box,2026-11-14T10:02:57.532Z
+10,aa_50#1,0.675,mid_conf;small,keep (check),pedestrian,images/aa_50.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+11,aa_14#3,0.673,mid_conf;small,keep (check),pedestrian,images/aa_14.jpg,long,edit,"pedestrian,114.9,75.5,6.3,16.3","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+12,aa_04#2,0.669,mid_conf;small,keep (check),pedestrian,images/aa_04.jpg,long,edit,"pedestrian,128.1,69,7,16.8","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+13,aa_09#4,0.663,mid_conf;small,keep (check),pedestrian,images/aa_09.jpg,long,edit,"pedestrian,213.9,72.3,8.7,21.1","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+14,aa_08#3,0.643,small,keep (check),pedestrian,images/aa_08.jpg,long,edit,"pedestrian,131.5,67.9,7.4,19","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+15,aa_05#2,0.643,small,keep (check),pedestrian,images/aa_05.jpg,long,edit,"pedestrian,112.9,70.3,7.3,18.9","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+16,aa_45#1,0.62,small,keep (check),motorbike,images/aa_45.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+17,aa_23#1,0.618,small,keep (check),sign,images/aa_23.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+18,aa_40#0,0.548,clipped,keep (check),car,images/aa_40.jpg,long,edit,"car,41,134.5,69.6,40.7","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+19,aa_22#3,0.546,small,keep (check),pedestrian,images/aa_22.jpg,long,edit,"pedestrian,191.9,73,8.3,23.1","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+20,aa_14#1,0.498,mid_conf,keep (check),car,images/aa_14.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+21,aa_50#3,0.496,mid_conf,keep (check),pedestrian,images/aa_50.jpg,long,reject,,Không có đối tượng box,2026-11-14T10:02:57.532Z
+22,aa_27#0,0.495,mid_conf,keep (check),car,images/aa_27.jpg,long,edit,"car,150.2,84.9,29.3,18.6","Vẽ lại khung cho ôm sát vật thể, giữ class",
+23,aa_33#1,0.494,mid_conf,keep (check),car,images/aa_33.jpg,long,edit,"car,216.6,111.7,48.7,28.9","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+24,aa_51#1,0.493,mid_conf,keep (check),car,images/aa_51.jpg,long,edit,"car,203.9,113.6,54.1,34","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+25,aa_40#2,0.49,mid_conf,keep (check),car,images/aa_40.jpg,long,edit,"car,135.6,106.3,47.9,29.7","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+26,aa_24#1,0.488,mid_conf,keep (check),car,images/aa_24.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+27,aa_30#1,0.483,mid_conf,keep (check),pedestrian,images/aa_30.jpg,long,approve,,,2026-11-14T10:02:57.532Z
+28,aa_32#4,0.476,mid_conf,keep (check),sign,images/aa_32.jpg,long,reject,,Không có box đối tượng,2026-11-14T10:02:57.532Z
+29,aa_04#3,0.475,mid_conf,keep (check),pedestrian,images/aa_04.jpg,long,edit,"pedestrian,226.5,88.7,15.2,38.5","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z
+30,aa_15#1,0.473,mid_conf,keep (check),car,images/aa_15.jpg,long,edit,"car,201.1,97.1,36.1,23.1","Vẽ lại khung cho ôm sát vật thể, giữ class",2026-11-14T10:02:57.532Z

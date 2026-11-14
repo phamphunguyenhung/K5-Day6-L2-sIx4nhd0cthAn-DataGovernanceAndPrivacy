@@ -88,10 +88,12 @@
 
 ## 07 · Human & decision
 
-- Review queue: `out/poc/review_queue.csv` (top B=30 theo suspicion score) + `contact_sheet.html` (offline). Reviewer: ⟦TODO: ai, bao nhiêu phút/ảnh⟧.
+- Review queue: `out/poc/review_queue.csv` (top B=30 theo suspicion score) → trang offline `out/site_top/index.html` (`python -m tools.t14_lowest_sheet --out out/site_top`). Bộ "30 box score thấp nhất" trên web cũ không dùng: không trùng box nào với queue, nên `review()` trả exit 2.
+- Reviewer: Trần Nguyễn Phi Long (`long`), 1 người, 17 phút 45 giây / 30 box (≈ 35 giây/box). Kết quả: `reports/review_queue.csv` → copy sang `out/poc/review_queue_reviewed.csv`.
+- Quyết định: **approve 10 · edit 17 · reject 3**. Queue bắt trúng 20/30 box có lỗi. 17 edit đều giữ class, vẽ lại khung (10/17 là box < 150 px²; IoU khung mới vs box model min 0.53 / median 0.72). 3 reject là box không có đối tượng (`aa_38#1`, `aa_50#3`, `aa_32#4`). Box khó nhất: `aa_09#4`, `aa_22#3` (pedestrian nhỏ, IoU khung sửa vs model 0.53), `aa_38#1` (box rộng 2 px). Chi tiết: `reports/individual/2A202604058_TranNguyenPhiLong.md`.
 - Override: cột `reviewer`, `reviewer_decision` (approve/reject/edit/escalate/skip), `override_value` → `review_queue_reviewed.csv`; box thiếu thêm bằng `review_additions.csv` (cần reviewer). Audit: `out/poc/audit_log.jsonl`; diff: `correction_diff.csv`.
 - Decision policy + `reason_code` + owner: xem mục 01. Owner (`configs/lab.yaml::owner`): ⟦TODO: chưa chốt⟧.
-- Khi nào HOLD/REWORK: chưa review hoặc review < 80% queue → HOLD; invalid label / round-trip lệch → REWORK. Kết quả run thật: ⟦TODO: dán `decision.json`⟧.
+- Khi nào HOLD/REWORK: chưa review hoặc review < 80% queue → HOLD; invalid label / round-trip lệch → REWORK. Kết quả run thật: trước review `HOLD / NOT_REVIEWED`; sau review `GO / REVIEWED_AND_VALID` (224 box export, invalid-label rate 0.0, round-trip YOLO/COCO ok, review_fraction 1.0; `out/poc/decision.json`).
 
 ## 08 · Reproduce & tests
 
