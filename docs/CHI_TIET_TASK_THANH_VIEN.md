@@ -95,16 +95,15 @@
 
 ---
 
-## 6. Bùi Văn Thịnh — Issue #12: Code test `decide()`, Decision Log & Hoàn thiện Báo cáo nhóm
+## 6. Bùi Văn Thịnh — Issue #12: Decision Log & Hoàn thiện Báo cáo nhóm
 
-**Mục tiêu:** bổ sung test cho nhánh `REWORK / EXPORT_QA_FAILED` trong `src/pipeline.py::decide`, chốt quyết định `GO/HOLD/REWORK` và rà soát toàn bộ `reports/group_report.md`.
+**Mục tiêu:** chốt quyết định GO/HOLD/REWORK và rà soát toàn bộ `reports/group_report.md`.
 
-1. **Code & Test:** đọc `src/pipeline.py::decide`, cập nhật `owner` trong `configs/lab.yaml`, viết thêm unit test cho nhánh `REWORK / EXPORT_QA_FAILED` trong `tests/test_t14.py` (`python -m pytest -q` xanh).
-2. Xem `out/poc/decision.json`, `out/poc/qa_report.json` và kết quả Failure Analysis (#9), Eval (#8/#10).
-3. Chốt quyết định **GO / HOLD / REWORK** kèm `reason_code` và `owner` vào `reports/decision_log.csv` (và phần Decision mục 07 `group_report.md`).
-4. Rà soát toàn bộ `reports/group_report.md` (mục 00–11) đảm bảo nhất quán, không còn placeholder trống.
+1. Xem `out/poc/decision.json`, `out/poc/qa_report.json` và kết quả Failure Analysis (#9), Eval (#8/#10).
+2. Chốt quyết định **GO / HOLD / REWORK** kèm `reason_code` và `owner` vào `reports/decision_log.csv` (và phần Decision mục 07 `group_report.md`).
+3. Rà soát toàn bộ `reports/group_report.md` (mục 00–11) đảm bảo nhất quán, không còn placeholder trống.
 
-**Xong khi (#12):** có unit test `REWORK / EXPORT_QA_FAILED` xanh; `reports/decision_log.csv` có quyết định + `reason_code` + `owner`; `reports/group_report.md` hoàn chỉnh sẵn sàng nộp.
+**Xong khi (#12):** `reports/decision_log.csv` có quyết định + `reason_code` + `owner`; `reports/group_report.md` hoàn chỉnh sẵn sàng nộp.
 
 ---
 

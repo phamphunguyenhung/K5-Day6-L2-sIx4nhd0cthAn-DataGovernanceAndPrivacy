@@ -44,19 +44,27 @@ def main() -> int:
     ap.add_argument("--input", default="fixtures/t14_auto_annotation")
     ap.add_argument("--out", default="out/site")
     ap.add_argument("-n", type=int, default=30)
+    ap.add_argument("--lowest", action="store_true", help="dung N box score thap nhat thay vi review_queue.csv")
     a = ap.parse_args()
     b = pd.read_csv(Path(a.run) / "boxes_all.csv")
-    low = b[b["kept"]].sort_values(["score", "box_id"], kind="stable").drop_duplicates("image_id").head(a.n)
-    q = pd.DataFrame({"rank": range(1, len(low) + 1), "item_id": low["box_id"].values, "score": low["score"].round(3).values,
-                      "reason": low["reason"].values, "suggested_action": "keep (check)", "slice": low["class"].values,
-                      "evidence_path": low["path"].values})
+    if a.lowest:
+        low = b[b["kept"]].sort_values(["score", "box_id"], kind="stable").drop_duplicates("image_id").head(a.n)
+        q = pd.DataFrame({"rank": range(1, len(low) + 1), "item_id": low["box_id"].values, "score": low["score"].round(3).values,
+                          "reason": low["reason"].values, "suggested_action": "keep (check)", "slice": low["class"].values,
+                          "evidence_path": low["path"].values})
+        selected = low
+        title = f"T14 review: {len(q)} box score thap nhat (do = box can duyet, xam = box khac)"
+    else:
+        q = pd.read_csv(Path(a.run) / "review_queue.csv", dtype=str).fillna("").head(a.n)
+        b_idx = b.set_index("box_id", drop=False)
+        selected = b_idx.loc[q["item_id"].tolist()]
+        title = f"T14 review: {len(q)} box nghi ngo cao nhat (do = box can duyet, xam = box khac)"
     boxes = {}
-    for r in low.itertuples():
+    for r in selected.itertuples():
         others = b[(b.image_id == r.image_id) & (b.box_id != r.box_id)]
         boxes[r.box_id] = [{"x": o.x, "y": o.y, "w": o.w, "h": o.h, "label": o._8, "color": "gray"} for o in others.itertuples()] + \
                           [{"x": r.x, "y": r.y, "w": r.w, "h": r.h, "label": f"{r._8} {r.conf:.2f}", "color": "red"}]
-    out = render_contact_sheet(q, Path(a.out) / "index.html", image_root=a.input, boxes_by_item=boxes, thumb_width=640,
-                               title=f"T14 review: {len(q)} box score thap nhat (do = box can duyet, xam = box khac)")
+    out = render_contact_sheet(q, Path(a.out) / "index.html", image_root=a.input, boxes_by_item=boxes, thumb_width=640, title=title)
     out.write_text(out.read_text(encoding="utf-8").replace("</body>", ZOOM + "</body>"), encoding="utf-8")
     print(f"{len(q)} items -> {out}")
     return 0
