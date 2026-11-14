@@ -8,8 +8,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from src.t14_tools import (build_class_map, load_inputs, map_classes, normalise_boxes, parse_override,
-                           validate_predictions)
+from src.t14_tools import (add_suspicion, build_class_map, export_coco, export_yolo, load_inputs, map_classes,
+                           normalise_boxes, parse_override, roundtrip_check, validate_predictions)
 
 ROOT = Path(__file__).resolve().parents[1]
 FX = ROOT / "fixtures" / "t14_auto_annotation"
@@ -51,6 +51,93 @@ def test_wrong_alias_would_still_be_a_valid_file_but_is_caught_by_validator_rule
     d = load_inputs(FX)
     with pytest.raises(ValueError, match="not in the taxonomy"):
         build_class_map(d["label_map"], d["taxonomy"], {"person": "bicycle"})
+
+
+@pytest.mark.parametrize("alias,why", [
+    ({"car": "pedestrian"}, "contradicts the taxonomy"),      # COCO 2=car relabelled as pedestrian
+    ({"person": "car"}, "map to the same taxonomy class"),    # person and car both end up as car
+])
+def test_wrong_alias_inside_the_taxonomy_is_refused(alias, why):
+    """Failure mode #1, the silent variant: the wrong target IS a taxonomy class, so every exported row is 'valid'."""
+    d = load_inputs(FX)
+    with pytest.raises(ValueError, match=why):
+        build_class_map(d["label_map"], d["taxonomy"], alias)
+
+
+def test_validator_alone_cannot_see_a_wrong_class_map():
+    """Why the guard lives in the adapter: once mapped, a swapped class is a perfectly valid label."""
+    d = load_inputs(FX)
+    swapped = {0: "car", 2: "pedestrian", 3: "motorbike", 11: "sign"}           # person<->car swapped by hand
+    boxes, _ = normalise_boxes(map_classes(d["preds"], swapped), d["images"])
+    assert validate_predictions(boxes, d["taxonomy"], d["images"]).empty
+
+
+def test_validator_flags_unknown_class_and_bad_geometry():
+    imgs = pd.DataFrame({"image_id": ["a"], "width": [100], "height": [50]})
+    pred = pd.DataFrame({"image_id": ["a", "a", "a", "a", "zz"], "class": ["car", "truck", "car", "car", "car"],
+                         "x": [1.0, 1.0, -2.0, 95.0, 1.0], "y": [1.0] * 5, "w": [5.0, 5.0, 5.0, 10.0, 5.0], "h": [5.0, 5.0, 0.0, 5.0, 5.0]})
+    bad = validate_predictions(pred, {0: "car"}, imgs)
+    assert bad["problem"].tolist() == ["unknown_class;", "non_positive_size;negative_origin;", "out_of_bounds;", "unknown_image;"]
+
+
+# ------------------------------------------------------------------ suspicion score + review queue
+def _scored(rows) -> pd.DataFrame:
+    df = pd.DataFrame(rows, columns=["image_id", "class", "x", "y", "w", "h", "conf", "clipped"])
+    return add_suspicion(df, thr=0.25)
+
+
+def test_suspicion_ranks_small_and_uncertain_boxes_above_confident_large_ones():
+    s = _scored([
+        ("a", "car", 0, 0, 80, 60, 0.95, False),            # large + confident
+        ("b", "sign", 0, 0, 10, 10, 0.95, False),           # small (100 px2 < 150)
+        ("c", "car", 0, 0, 80, 60, 0.50, False),            # mid confidence
+        ("d", "sign", 0, 0, 10, 10, 0.50, False),           # small + mid confidence
+        ("e", "car", 0, 0, 80, 60, 0.20, True),             # below threshold + clipped
+    ])
+    assert s["score"].tolist() == [0.05, 0.35, 0.5, 0.8, 0.533333]
+    assert s["reason"].tolist() == ["low_priority", "small", "mid_conf", "mid_conf;small", "below_threshold;clipped"]
+    assert s["score"].idxmax() == 3 and s["score"].idxmin() == 0
+
+
+def test_suspicion_flags_overlapping_boxes_of_different_classes():
+    s = _scored([
+        ("a", "motorbike", 10, 10, 40, 40, 0.9, False),
+        ("a", "pedestrian", 12, 12, 40, 40, 0.9, False),    # IoU ~0.82 with the motorbike
+        ("a", "car", 200, 100, 40, 40, 0.9, False),
+        ("b", "pedestrian", 10, 10, 40, 40, 0.9, False),    # same place, other image
+    ])
+    assert s["confusion"].tolist() == [True, True, False, False]
+    assert "class_confusion" in s.loc[0, "reason"] and s.loc[0, "score"] > s.loc[2, "score"]
+
+
+def test_review_queue_is_top_budget_by_score_and_enriches_small_boxes(tmp_path):
+    assert run_main(tmp_path).returncode == 0
+    q = pd.read_csv(tmp_path / "review_queue.csv")
+    boxes = pd.read_csv(tmp_path / "boxes_all.csv")
+    assert list(q.columns[:5]) == ["rank", "item_id", "score", "reason", "suggested_action"]
+    assert len(q) == 30 and q["rank"].tolist() == list(range(1, 31))
+    assert q["item_id"].is_unique and set(q["item_id"]) <= set(boxes["box_id"])
+    assert q["score"].is_monotonic_decreasing
+    assert q["score"].min() >= boxes[~boxes["box_id"].isin(q["item_id"])]["score"].max()   # nothing better was left out
+    in_queue = boxes["box_id"].isin(q["item_id"])
+    assert boxes[in_queue]["small"].mean() > 3 * boxes["small"].mean()                     # queue targets the hard slice
+
+
+# ------------------------------------------------------------------ exporter QA
+def test_roundtrip_passes_on_clean_export_and_fails_when_a_label_file_is_tampered(tmp_path):
+    tax = {0: "car", 1: "pedestrian"}
+    imgs = pd.DataFrame({"image_id": ["a", "b"], "path": ["images/a.jpg", "images/b.jpg"], "width": [320, 320], "height": [180, 180]})
+    pred = pd.DataFrame({"image_id": ["a", "a"], "class": ["car", "pedestrian"], "x": [10.0, 100.5], "y": [20.0, 30.25],
+                         "w": [50.0, 12.5], "h": [40.0, 30.0], "conf": [0.9, 0.6]})
+    export_yolo(pred, tax, imgs, tmp_path / "yolo")
+    export_coco(pred, tax, imgs, tmp_path / "coco.json")
+    assert (tmp_path / "yolo" / "labels" / "b.txt").read_text(encoding="utf-8") == ""     # image without boxes still gets a file
+    rt = roundtrip_check(pred, tax, imgs, tmp_path / "yolo", tmp_path / "coco.json")
+    assert rt["yolo_ok"] and rt["coco_ok"] and rt["n_boxes"] == 2
+    label = tmp_path / "yolo" / "labels" / "a.txt"
+    label.write_text(label.read_text(encoding="utf-8").replace("0 ", "1 ", 1), encoding="utf-8")   # car -> pedestrian
+    rt = roundtrip_check(pred, tax, imgs, tmp_path / "yolo", tmp_path / "coco.json")
+    assert not rt["yolo_ok"] and rt["coco_ok"]
 
 
 # ------------------------------------------------------------------ geometry

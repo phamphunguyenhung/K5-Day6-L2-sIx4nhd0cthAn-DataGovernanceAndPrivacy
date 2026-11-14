@@ -47,7 +47,15 @@ def build_class_map(label_map: dict[int, str], taxonomy: dict[int, str], alias: 
             raise ValueError(f"model class {cid}={name!r} has no alias to the project taxonomy {sorted(names)}; set params.class_alias")
         if target not in names:
             raise ValueError(f"alias {name!r} -> {target!r} is not in the taxonomy {sorted(names)}")
+        if name in names and target != name:
+            raise ValueError(f"alias {name!r} -> {target!r} contradicts the taxonomy, which already has a class named {name!r}")
         out[int(cid)] = target
+    for target in sorted(names):
+        src = sorted(c for c, t in out.items() if t == target)
+        if len(src) > 1:
+            model_names = {int(c): n for c, n in label_map.items()}
+            raise ValueError(f"model classes {[f'{c}={model_names[c]}' for c in src]} map to the same taxonomy class {target!r}; "
+                             "a wrong alias still exports valid rows, so merging classes is refused")
     return out
 
 

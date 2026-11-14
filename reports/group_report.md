@@ -42,27 +42,28 @@
 
 - References: ⟦TODO: 2–3 URL + ngày xem + vì sao chọn (CVAT QA, Ultralytics/RF-DETR, label-map validation)⟧ — xem mục 11.
 - Data flow (`src/pipeline.py`): `load` (kiểm manifest) → `process` (map class, clip box, lọc conf, suspicion score) → `rank` (review queue top-B + `contact_sheet.html`) → `review` (áp `review_queue_reviewed.csv` + `review_additions.csv`, ghi audit) → `export` (validate, CSV/YOLO/COCO, round-trip) → `decide` (GO/HOLD/REWORK).
-- Suspicion score = 0.5·uncertainty + 0.3·small + 0.2·clipped + 0.3·class_confusion (tham số ở `lab.yaml`, đóng băng trước eval). Chọn trên dev: ⟦TODO: bằng chứng `tools.t14_eval_dev --sweep`⟧.
+- Suspicion score = 0.5·uncertainty + 0.3·small + 0.2·clipped + 0.3·class_confusion (tham số ở `lab.yaml`, đóng băng trước eval). `uncertainty = clip(max(1 − 2·|conf − 0.5|, 1 − |conf − thr|/0.15), 0, 1)`; small = diện tích < 150 px²; confusion = IoU ≥ 0.5 với box khác class cùng ảnh. `lab.yaml` để `params: {}` nên đang dùng trọng số mặc định trong code. Chưa kiểm chứng trên dev: `gold/gold_dev.csv` chưa có nên `tools.t14_eval_dev --sweep` chưa chạy được.
+- Bằng chứng queue ưu tiên đúng box khó (`out/poc/boxes_all.csv`, commit `3ee254b`): queue 30 box có 18 box nhỏ (60.0%) và 23 box conf 0.35–0.65 (76.7%); toàn bộ 234 box model có 19 box nhỏ (8.1%) và 78 box conf trung bình (33.3%). Queue chứa 18/19 box nhỏ. Score trong queue từ 0.783 xuống 0.473, không trùng `item_id`.
 - Thành phần offline: không có weights ngoài (prediction fixture). ⟦TODO: nếu dùng YOLO26/RF-DETR thì ghi checksum + license: YOLO26 là AGPL-3.0⟧.
-- Trade-offs: ⟦TODO: B=30 so với tổng 227 box; recall vật thể nhỏ vs. công review; ngưỡng 0.25⟧.
+- Trade-offs: B = 30 trên 227 box export (13.2%), 197 box còn lại không ai xem. Queue chỉ xếp hạng box model đã dự đoán nên **không tìm được vật thể model bỏ sót**; box sót phải thêm tay qua `review_additions.csv`. Ngưỡng 0.25 loại 7 box; không box nào trong số đó vào queue (score cao nhất của nhóm này thấp hơn 0.473) nên chúng không được xét cứu. `confusion` = 0 trên toàn fixture, trọng số 0.3 của nó chưa có tác dụng ở dữ liệu này.
 
 ## 04 · Baseline vs PoC
 
 - Baseline (`src/baseline_t14.py`): map class, lọc conf ≥ 0.25, export **không clip, không rank, không review**. Decision luôn `HOLD / BASELINE_ONLY`. Commit: ⟦TODO⟧
-- PoC (`src/pipeline.py`): thêm clip box, suspicion rank, review loop, validator, round-trip, decision. Commit: ⟦TODO⟧
-- Cùng budget / heldout / seed 42 / config: ⟦TODO: xác nhận⟧
+- PoC (`src/pipeline.py`): thêm clip box, suspicion rank, review loop, validator, round-trip, decision. Chạy lại ở commit `3ee254b` (config hash `6dec1da15c3f`): 234 box model → 227 export, 3 box bị clip, 0 invalid, round-trip YOLO 0.00024 px / COCO 0.0 px (tol 0.05), decision `HOLD / NOT_REVIEWED` vì chưa áp CSV duyệt. Commit code: ⟦TODO: sha commit của Việt⟧
+- Cùng budget / heldout / seed 42 / config: cả hai run dùng `configs/lab.yaml`, `--seed 42 --offline`, `conf_threshold` 0.25, cùng 60 ảnh fixture. Baseline không dùng budget review (không có bước review).
 
 **Bảng 1 · Baseline vs PoC** — dán nguyên output `python -m src.compare reports/metrics_baseline.json reports/metrics_poc.json`:
 
-⟦TODO: dán bảng do script sinh; không sửa tay. Nếu baseline = 0 hoặc Δ ≤ 0 thì ghi rõ.⟧
+**Chưa có số chính thức.** `python -m src.evaluate` dừng exit 2 (`ground truth file not found: fixtures/t14_auto_annotation/gt/gt_boxes.csv`) nên chưa có `reports/metrics_*.json` và `table1_baseline_vs_poc.md`. Các dòng F1 / recall / Review@B bên dưới để trống cho tới khi có overlay `gt/`. Hai dòng cuối lấy từ `out/<run>/qa_report.json` và `run_info.json` (không cần GT).
 
 | Metric (unit) | Baseline | PoC | Δ & chú thích |
 |---|---|---|---|
 | Primary: Detection F1@IoU0.5 (box, 20 ảnh eval) | ⟦⟧ | ⟦⟧ | higher is better |
 | Hard-slice: recall small object (< 150 px²) | ⟦⟧ | ⟦⟧ | N=⟦⟧ |
 | Review@B / miss / FP | ⟦⟧ | ⟦⟧ | B=30 |
-| Invalid-label rate sau export | ⟦⟧ | ⟦⟧ | mục tiêu 0 |
-| Runtime / 100 items | ⟦⟧ | ⟦⟧ | CPU=⟦⟧ |
+| Invalid-label rate sau export | 0.0132 (3/227) | 0.0 (0/227) | mục tiêu 0; baseline không clip box tràn ảnh |
+| Runtime / 100 items | 0.011 s | 0.170 s | 234 box; 0.027 s và 0.397 s cả run; Intel64 Family 6 Model 140, Windows 11, Python 3.15.2 |
 
 ## 05 · Evaluation protocol
 
@@ -101,8 +102,8 @@ python -m src.main --config configs/lab.yaml --track t14 --pipeline src.baseline
 pytest -q
 ```
 
-- Test của nhóm (`tests/test_t14.py`): class map, unmapped class fail, alias sai, clip box, parse override, pipeline end-to-end tái lập, baseline vs PoC, review loop → GO, review dở → HOLD, file review hỏng → exit 2, thêm box thiếu.
-- Output `pytest -q`: ⟦TODO: dán kết quả⟧
+- Test của nhóm (`tests/test_t14.py`, 21 test): class map, unmapped class fail, alias sai (ngoài taxonomy và trong taxonomy), validator, suspicion score, review queue top-B, round-trip YOLO/COCO, clip box, parse override, pipeline end-to-end tái lập, baseline vs PoC, review loop → GO, review dở → HOLD, file review hỏng → exit 2, thêm box thiếu.
+- Output `pytest -q`: 21 test, tất cả pass (`.....................  [100%]`), chạy ở working tree trên commit `3ee254b`.
 - Máy / CPU / OS / Python: ⟦TODO⟧ · git sha: ⟦TODO⟧
 
 ## 09 · Limitations & ethics
@@ -120,7 +121,7 @@ pytest -q
 |---|---|---|---|---|
 | Trần Thành Hùng | ⟦⟧ | ⟦⟧ | ⟦⟧ | ⟦⟧ |
 | Hoàng Quốc Chung | ⟦⟧ | ⟦⟧ | ⟦⟧ | ⟦⟧ |
-| Nguyễn Xuân Việt | ⟦⟧ | ⟦⟧ | ⟦⟧ | ⟦⟧ |
+| Nguyễn Xuân Việt | vietnx | Review queue (E), test, chạy lại export/eval, hồ sơ nhóm (K) · `src/t14_tools.py`, `tests/test_t14.py` | ⟦TODO: sha⟧ · `reports/individual/2A202604045_NguyenXuanViet.md` | ⟦⟧ |
 | Trần Nguyễn Phi Long | ⟦⟧ | ⟦⟧ | ⟦⟧ | ⟦⟧ |
 | Phạm Phú Nguyễn Hưng | Phạm Phú Nguyễn Hưng | ⟦⟧ | ⟦⟧ | ⟦⟧ |
 | Member 6 (nếu có) | ⟦⟧ | ⟦⟧ | ⟦⟧ | ⟦⟧ |
