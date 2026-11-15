@@ -8,6 +8,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from src.common.context import RunContext
+from src.pipeline import decide
 from src.t14_tools import (add_suspicion, build_class_map, export_coco, export_yolo, load_inputs, map_classes,
                            normalise_boxes, parse_override, roundtrip_check, validate_predictions)
 
@@ -245,3 +247,80 @@ def test_missed_box_addition_needs_a_reviewer_and_is_exported(tmp_path):
     assert run_main(out).returncode == 0
     pred = pd.read_csv(out / "predictions.csv")
     assert (pred["source"] == "human").sum() == 1
+
+
+# ------------------------------------------------------------------ pipeline decide() unit tests
+@pytest.fixture
+def run_context_for_decide(tmp_path):
+    import numpy as np
+    return RunContext(
+        track="t14",
+        input_dir=tmp_path / "in",
+        output_dir=tmp_path / "out",
+        config={"owner": "Bui Van Thinh (Lead)", "params": {"min_review_fraction": 0.8}},
+        seed=42,
+        rng=np.random.default_rng(42),
+        stats={"queue_size": 30, "n_reviewed": 30},
+    )
+
+
+@pytest.mark.parametrize("qa_override,case_desc", [
+    ({"n_invalid": 1, "yolo_ok": True, "coco_ok": True}, "invalid_label_detected"),
+    ({"n_invalid": 0, "yolo_ok": False, "coco_ok": True}, "yolo_roundtrip_failed"),
+    ({"n_invalid": 0, "yolo_ok": True, "coco_ok": False}, "coco_roundtrip_failed"),
+    ({"n_invalid": 3, "yolo_ok": False, "coco_ok": False}, "both_invalid_and_roundtrip_failed"),
+])
+def test_decide_rework_on_export_qa_failed(run_context_for_decide, qa_override, case_desc):
+    base_qa = {
+        "n_exported": 50,
+        "n_invalid": 0,
+        "invalid_label_rate": 0.0,
+        "yolo_ok": True,
+        "coco_ok": True,
+        "yolo_max_err_px": 0.01,
+        "coco_max_err_px": 0.01,
+        "tol_px": 0.05,
+        "n_boxes": 50,
+    }
+    qa = {**base_qa, **qa_override}
+    decision = decide(run_context_for_decide, qa)
+    assert decision.status == "REWORK", case_desc
+    assert decision.canonical == "REWORK"
+    assert decision.reason_code == "EXPORT_QA_FAILED"
+    assert "Invalid labels or YOLO/COCO round-trip mismatch" in decision.reason
+    assert decision.owner == "Bui Van Thinh (Lead)"
+    assert decision.scope == "t14"
+    assert any("qa_report.json" in ev for ev in decision.evidence)
+
+
+def test_decide_rework_precedence_over_hold_and_go(tmp_path):
+    import numpy as np
+    # Trường hợp 1: n_reviewed = 0 (bình thường là HOLD / NOT_REVIEWED)
+    ctx_unreviewed = RunContext(
+        track="t14",
+        input_dir=tmp_path,
+        output_dir=tmp_path,
+        config={"owner": "tester"},
+        seed=42,
+        rng=np.random.default_rng(42),
+        stats={"queue_size": 30, "n_reviewed": 0},
+    )
+    bad_qa = {"n_invalid": 2, "yolo_ok": True, "coco_ok": True}
+    dec_unreviewed = decide(ctx_unreviewed, bad_qa)
+    assert dec_unreviewed.status == "REWORK"
+    assert dec_unreviewed.reason_code == "EXPORT_QA_FAILED"
+
+    # Trường hợp 2: n_reviewed = 30 / 30 (bình thường là GO)
+    ctx_reviewed = RunContext(
+        track="t14",
+        input_dir=tmp_path,
+        output_dir=tmp_path,
+        config={"owner": "tester"},
+        seed=42,
+        rng=np.random.default_rng(42),
+        stats={"queue_size": 30, "n_reviewed": 30},
+    )
+    dec_reviewed = decide(ctx_reviewed, bad_qa)
+    assert dec_reviewed.status == "REWORK"
+    assert dec_reviewed.reason_code == "EXPORT_QA_FAILED"
+

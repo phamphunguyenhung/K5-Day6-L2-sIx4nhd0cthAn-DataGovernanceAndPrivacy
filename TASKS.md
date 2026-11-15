@@ -22,4 +22,4 @@ Trạng thái: TODO | IN_PROGRESS | BLOCKED | REVIEW | DONE
 | B-01 | Trần Nguyễn Phi Long (B) | Review box dự đoán (approve/edit/delete), ưu tiên ảnh 0 detection + vật nhỏ; cross-check 20% nhãn của A | `docs/team/qc.md`, `review_decisions.csv` | Có reviewer + timestamp + diff thật | TODO |
 | C-01 | Nguyễn Xuân Việt (C) | Test mapping, OOD drop, invalid box, seed deterministic, dry-run không ghi remote, no GT leak | `tests/test_t14_real_*.py` | pytest pass + evidence | TODO |
 | D-01 | Trần Thành Hùng (D) | Test CSV schema, import YOLO/COCO, so sánh baseline vs PoC, failure cases | `tests/test_t14_export_*.py`, `docs/team/bench.md` | Không sửa evaluator | TODO |
-| E-01 | Bùi Văn Thịnh (E) | Report, sơ đồ kiến trúc, demo script, bảng Git evidence, slide 8–10 phút | `docs/report.md`, `docs/demo.md`, `docs/contributions.md` | Chỉ ghi việc thực sự xong | TODO |
+| E-01 | Bùi Văn Thịnh (E) | Report, sơ đồ kiến trúc, demo script, bảng Git evidence, slide 8–10 phút | `docs/report.md`, `docs/demo.md`, `docs/contributions.md` | Chỉ ghi việc thực sự xong | DONE |

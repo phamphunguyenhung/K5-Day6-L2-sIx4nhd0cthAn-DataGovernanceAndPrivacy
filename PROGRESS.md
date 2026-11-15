@@ -25,3 +25,14 @@
 - **Chưa đo / chặn:** (1) chưa có gold nên chưa có mIoU/F1; (2) chưa import thử vào CVAT (`cvat_import_verified=false`); (3) SAM refine tắt (chậm ~7s/instance, chưa chứng minh tốt hơn YOLO); (4) semantic policy của agent 2 chưa kiểm chứng, đang dùng SegFormer cũ; (5) layering/review_rank chưa nối vào pipeline; (6) song song nhiều worker chưa kết luận.
 - **Sự cố đã xử lý:** 2 tiến trình bench của agent treo (7.4 GB RAM) đã dừng; lần chạy 50 ảnh đầu bị ngắt ở ảnh thứ 2 (nghi thiếu RAM), chạy lại thành công; `drive_057` thuộc split eval, đã loại khỏi mọi quyết định tune.
 - **CVAT:** không có thao tác ghi (cvat_upload_done=false).
+
+## 2026-11-15 — Issue #12 & Task E-01 (Bùi Văn Thịnh — 2A202604040)
+- **Unit tests `decide()` (`tests/test_t14.py`):** bổ sung 5 unit tests kiểm tra nhánh `REWORK / EXPORT_QA_FAILED` (`n_invalid > 0`, `yolo_ok=False`, `coco_ok=False`) và thứ tự ưu tiên của `REWORK` trước `HOLD` / `GO`.
+- **Chạy lại Baseline & PoC (Lane A, offline, seed 42):**
+  - `.venv\Scripts\python.exe -m src.main --config configs/lab.yaml --track t14 --pipeline src.baseline_t14 --output out/baseline --run-name baseline --offline --seed 42` → exit 0 (`HOLD / BASELINE_ONLY`, `n_exported=227`, `n_invalid=3`).
+  - `.venv\Scripts\python.exe -m src.main --config configs/lab.yaml --track t14 --output out/poc --run-name poc --offline --seed 42` → exit 0 (`HOLD / NOT_REVIEWED`, `n_exported=227`, `n_invalid=0`, `yolo_max_err_px=0.00024`, `coco_max_err_px=0.0`).
+- **Decision Log & Báo cáo (`Issue #12` & `E-01`):**
+  - Cập nhật `owner: "Bui Van Thinh (Lead)"` và `group_id: G01` trong `configs/lab.yaml` và `submission/README.md`.
+  - Xuất `reports/decision_log.csv` chuẩn 8 cột (`ts,scope,status,canonical,reason_code,reason,owner,evidence`).
+  - Hoàn thiện `reports/group_report.md` (mục 00–11), `reports/individual/2A202604040_BuiVanThinh.md`, `reports/team_contributions.csv`, và bộ tài liệu `docs/report.md`, `docs/demo.md`, `docs/contributions.md` kèm 4 ảnh minh họa lỗi trong `reports/figures/`.
+- **Kiểm định:** `.venv\Scripts\python.exe -m pytest -q` → 87 passed, 5 skipped (riêng `tests/test_t14.py`: 26/26 passed); `.venv\Scripts\python.exe -m tools.preflight` → `0 FAIL, 1 WARN`.

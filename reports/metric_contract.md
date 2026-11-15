@@ -19,6 +19,6 @@
 | Chỉ số lỗi xấu (miss / false alarm / false reject) | Invalid-label rate sau export (↓, mục tiêu 0); miss box nhỏ (recall slice small) |
 | Slices sẽ báo cáo (≥2) | recall theo class (car / pedestrian / motorbike / sign); small objects < 150 px² |
 | Cách báo độ bất định khi N nhỏ (Wilson CI / bootstrap) | bootstrap theo ảnh (20 ảnh eval); ghi rõ N nhỏ, không kết luận Δ nhỏ |
-| Ngày giờ chốt + người chốt | |
+| Ngày giờ chốt + người chốt | 2026-11-14 10:00:00 (GMT+7) · Trần Thành Hùng (Metric Contract Owner) & Bùi Văn Thịnh (Lead) |
 
 Nếu baseline = 0 thì ghi rõ "baseline = 0" thay vì phần trăm cải thiện.

@@ -1,0 +1,4 @@
+ts,scope,status,canonical,reason_code,reason,owner,evidence
+2026-11-15T03:54:19+00:00,t14,HOLD,HOLD,BASELINE_ONLY,"Baseline: auto labels, default threshold, no review - never release on this",Bui Van Thinh (Lead),out/baseline/predictions.csv
+2026-11-15T02:04:11+00:00,t14,HOLD,HOLD,NOT_REVIEWED,"Auto labels only: no human review applied yet",Bui Van Thinh (Lead),out/poc/qa_report.json;out/poc/review_queue.csv
+2026-11-15T03:54:21+00:00,t14,GO,GO,REVIEWED_AND_VALID,Queue reviewed and export passes validation (accuracy not asserted: no eval GT in this repo),Bui Van Thinh (Lead),out/poc/qa_report.json;out/poc/review_queue.csv

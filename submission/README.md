@@ -9,7 +9,7 @@
 | **Bài** | Day 06 · Data Lab · Field-to-Release PoC (K5 · L2) |
 | **Repo nhóm** | https://github.com/phamphunguyenhung/K5-Day6-L2-sIx4nhd0cthAn-DataGovernanceAndPrivacy |
 | **Repo đề bài (upstream)** | https://github.com/VinUni-AI20k/K5-Day6-L2-DataGovernanceAndPrivacy |
-| **Người ký duyệt (`owner` trong `configs/lab.yaml`)** | _chưa chốt_ |
+| **Người ký duyệt (`owner` trong `configs/lab.yaml`)** | `Bui Van Thinh (Lead)` |
 
 ## Thành viên
 

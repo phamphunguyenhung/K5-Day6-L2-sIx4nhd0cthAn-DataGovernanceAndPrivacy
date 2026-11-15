@@ -2,8 +2,8 @@
 # Group config (T14) - EDIT ME. Values here override
 # the track defaults loaded from `track_config`.
 # ============================================================
-group_id: G00                     # e.g. G07
-owner: "TODO: tên người ký duyệt (role)"   # mandatory for every Decision
+group_id: G01
+owner: "Bui Van Thinh (Lead)"  # mandatory for every Decision
 track_config: tracks/t14.yaml
 track: t14
 input: fixtures/t14_auto_annotation
